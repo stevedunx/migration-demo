@@ -11,6 +11,7 @@ import json
 import os
 import socket
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -79,7 +80,7 @@ def azurite(tmp_path_factory):  # yields str
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            shell=True,  # Use shell to find the command on PATH
+            shell=sys.platform == "win32",  # .cmd wrapper on Windows needs shell
         )
     except FileNotFoundError:
         # Check if 'azurite-blob' is on PATH but failed to execute for some reason
