@@ -122,6 +122,39 @@ class TestProcessTile:
         metadata = json.loads(raw)
         assert metadata["tile"] == tile_1k
 
+    def test_produces_provenance_json_blob(self, azurite, blob_client, tile_data):
+        tile_10k, tile_1k = tile_data
+
+        process_tile(tile_10k, tile_1k, self._client(azurite), self._dtm_index())
+
+        assert _ndsm_blob(blob_client, tile_10k, tile_1k, "provenance.json").exists()
+
+    def test_provenance_records_dsm_source(self, azurite, blob_client, tile_data):
+        tile_10k, tile_1k = tile_data
+
+        process_tile(tile_10k, tile_1k, self._client(azurite), self._dtm_index())
+
+        raw = (
+            _ndsm_blob(blob_client, tile_10k, tile_1k, "provenance.json")
+            .download_blob()
+            .readall()
+        )
+        provenance = json.loads(raw)
+        assert provenance["dsm_source"] == f"dsm/v1/{tile_10k}/{tile_1k}.tif"
+
+    def test_provenance_records_dtm_source(self, azurite, blob_client, tile_data):
+        tile_10k, tile_1k = tile_data
+
+        process_tile(tile_10k, tile_1k, self._client(azurite), self._dtm_index())
+
+        raw = (
+            _ndsm_blob(blob_client, tile_10k, tile_1k, "provenance.json")
+            .download_blob()
+            .readall()
+        )
+        provenance = json.loads(raw)
+        assert provenance["dtm_source"] == f"dtm/v1/{tile_10k}/{DTM_GUID}.tif.gz"
+
     def test_raises_for_missing_dtm_index_entry(self, azurite, tile_data):
         tile_10k, tile_1k = tile_data
         empty_index = {"tiles": []}
@@ -143,6 +176,7 @@ class TestRun:
 
         assert _ndsm_blob(blob_client, tile_10k, tile_1k, "tif").exists()
         assert _ndsm_blob(blob_client, tile_10k, tile_1k, "json").exists()
+        assert _ndsm_blob(blob_client, tile_10k, tile_1k, "provenance.json").exists()
 
     def test_ndsm_values_are_correct(self, azurite, blob_client, tile_data):
         tile_10k, tile_1k = tile_data

@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import json
 import logging
 import os
@@ -22,6 +23,17 @@ from .storage import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _build_provenance(tile_10k: str, tile_1k: str, dtm_filename: str) -> dict:
+    """Return a provenance record describing the source data used to create the nDSM."""
+    return {
+        "tile_10k": tile_10k,
+        "tile_1k": tile_1k,
+        "dsm_source": f"{DSM_CONTAINER}/{VERSION}/{tile_10k}/{tile_1k}.tif",
+        "dtm_source": f"{DTM_CONTAINER}/{VERSION}/{tile_10k}/{dtm_filename}",
+        "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }
 
 
 def process_tile(
@@ -61,6 +73,15 @@ def process_tile(
                 NDSM_CONTAINER,
                 ndsm_json_blob,
                 json.dumps(metadata, indent=2).encode(),
+            )
+
+            provenance = _build_provenance(tile_10k, tile_1k, dtm_filename)
+            ndsm_provenance_blob = f"{VERSION}/{tile_10k}/{tile_1k}.provenance.json"
+            upload_bytes(
+                client,
+                NDSM_CONTAINER,
+                ndsm_provenance_blob,
+                json.dumps(provenance, indent=2).encode(),
             )
 
             logger.info("Uploaded nDSM to %s/%s", NDSM_CONTAINER, ndsm_tif_blob)
