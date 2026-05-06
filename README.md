@@ -1,6 +1,6 @@
 # nDSM Creator
 
-Calculates a normalised Digital Surface Model (nDSM) from a DSM and DTM held in Azure Blob Storage, using the formula **DSM − DTM = nDSM**. The output rasters are written locally.
+Calculates a normalised Digital Surface Model (nDSM) from a DSM and DTM held in Azure Blob Storage, using the formula **DSM − DTM = nDSM**. The output rasters are written to Azure Blob Storage.
 
 [![CI](https://github.com/stevedunx/migration-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/stevedunx/migration-demo/actions/workflows/ci.yml)
 
@@ -75,11 +75,6 @@ ndsm/
 
 Download and install the LTS release from [nodejs.org](https://nodejs.org/), or use a version manager:
 
-```bash
-# macOS / Linux – using nvm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-nvm install --lts
-```
 
 ```powershell
 # Windows – using winget
@@ -103,16 +98,54 @@ npm install -g azurite@3.35.0
 
 ## Installation
 
+### Install uv
+
+[uv](https://docs.astral.sh/uv/) is the recommended way to manage the Python environment and dependencies.
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```powershell
+# Windows – using winget
+winget install --id=astral-sh.uv -e
+```
+
+Verify the installation:
+
+```bash
+uv --version
+```
+
+### Install the package
+
 Install the package and its runtime dependencies:
 
 ```bash
-pip install -e .
+uv pip install -e .
 ```
 
-Install the package with test dependencies:
+Install with test dependencies:
 
 ```bash
-pip install -e ".[test]"
+uv pip install -e ".[test]"
+```
+
+To run commands inside the managed environment, prefix them with `uv run`:
+
+```bash
+uv run ndsm-creator SP00
+uv run pytest
+```
+
+### Alternative: plain pip
+
+If you prefer not to use uv, pip works too:
+
+```bash
+pip install -e .           # runtime only
+pip install -e ".[test]"   # with test dependencies
 ```
 
 ## Running
@@ -120,22 +153,20 @@ pip install -e ".[test]"
 Process all 1 km tiles within a 10 km BNG block and upload the nDSM files to the `ndsm` container in blob storage:
 
 ```bash
-ndsm-creator SP00
+uv run ndsm-creator SP00
 ```
 
 By default the application authenticates to Azure using `DefaultAzureCredential`. The following environment variables are supported:
 
 | Variable                          | Default                                           | Description                                      |
 | --------------------------------- | ------------------------------------------------- | ------------------------------------------------ |
-| `STORAGE_ACCOUNT_URL`             | `https://height-store-demo.blob.core.windows.net` | Azure Blob Storage account URL                   |
+| `STORAGE_ACCOUNT_URL`             | `https://height-store-demo.blob.core.example.net` | Azure Blob Storage account URL                   |
 | `AZURE_STORAGE_CONNECTION_STRING` | _(unset)_                                         | If set, used instead of `DefaultAzureCredential` |
 
 ## Running the tests
 
-Ensure Azurite is installed (see [Prerequisites](#prerequisites)), then:
-
 ```bash
-pytest
+uv run pytest
 ```
 
 The test suite starts an Azurite blob service automatically on a free local port, uploads synthetic DSM and DTM tiles, and tears the service down when the session ends. No Azure account or credentials are required to run the tests.
