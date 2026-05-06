@@ -108,6 +108,7 @@ def blob_client(azurite) -> BlobServiceClient:
     client = BlobServiceClient.from_connection_string(azurite)
     client.create_container("dsm")
     client.create_container("dtm")
+    client.create_container("ndsm")
     return client
 
 

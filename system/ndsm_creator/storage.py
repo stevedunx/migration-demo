@@ -53,3 +53,11 @@ def download_tif_gz_to_temp(
     tmp.write(decompressed)
     tmp.close()
     return Path(tmp.name)
+
+
+def upload_bytes(
+    client: BlobServiceClient, container: str, blob_path: str, data: bytes
+) -> None:
+    client.get_blob_client(container=container, blob=blob_path).upload_blob(
+        data, overwrite=True
+    )

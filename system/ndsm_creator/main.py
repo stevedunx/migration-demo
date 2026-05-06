@@ -2,12 +2,13 @@ import argparse
 import json
 import logging
 import os
+import tempfile
 from pathlib import Path
 
 from .config import (
     DSM_CONTAINER,
     DTM_CONTAINER,
-    OUTPUT_DIR,
+    NDSM_CONTAINER,
     STORAGE_ACCOUNT_URL,
     VERSION,
 )
@@ -17,6 +18,7 @@ from .storage import (
     download_json,
     download_tif_gz_to_temp,
     download_tif_to_temp,
+    upload_bytes,
 )
 
 logger = logging.getLogger(__name__)
@@ -27,9 +29,8 @@ def process_tile(
     tile_1k: str,
     client,
     dtm_index: dict,
-    output_dir: Path,
 ) -> None:
-    """Download the DSM and DTM for a 1k tile, compute the nDSM, and write outputs locally."""
+    """Download the DSM and DTM for a 1k tile, compute the nDSM, and upload to blob storage."""
     dtm_tiles = {t["reference"]: t["file"] for t in dtm_index.get("tiles", [])}
     dtm_filename = dtm_tiles.get(tile_1k)
     if dtm_filename is None:
@@ -43,16 +44,28 @@ def process_tile(
     )
 
     try:
-        output_tif = output_dir / tile_10k / f"{tile_1k}.tif"
-        calculate_ndsm(dsm_path, dtm_path, output_tif)
+        with tempfile.NamedTemporaryFile(suffix=".tif", delete=False) as tmp:
+            ndsm_tmp = Path(tmp.name)
+        try:
+            calculate_ndsm(dsm_path, dtm_path, ndsm_tmp)
 
-        metadata = download_json(
-            client, DSM_CONTAINER, f"{VERSION}/{tile_10k}/{tile_1k}.json"
-        )
-        output_json = output_dir / tile_10k / f"{tile_1k}.json"
-        output_json.write_text(json.dumps(metadata, indent=2))
+            ndsm_tif_blob = f"{VERSION}/{tile_10k}/{tile_1k}.tif"
+            upload_bytes(client, NDSM_CONTAINER, ndsm_tif_blob, ndsm_tmp.read_bytes())
 
-        logger.info("Produced %s", output_tif)
+            metadata = download_json(
+                client, DSM_CONTAINER, f"{VERSION}/{tile_10k}/{tile_1k}.json"
+            )
+            ndsm_json_blob = f"{VERSION}/{tile_10k}/{tile_1k}.json"
+            upload_bytes(
+                client,
+                NDSM_CONTAINER,
+                ndsm_json_blob,
+                json.dumps(metadata, indent=2).encode(),
+            )
+
+            logger.info("Uploaded nDSM to %s/%s", NDSM_CONTAINER, ndsm_tif_blob)
+        finally:
+            ndsm_tmp.unlink(missing_ok=True)
     finally:
         dsm_path.unlink(missing_ok=True)
         dtm_path.unlink(missing_ok=True)
@@ -60,12 +73,9 @@ def process_tile(
 
 def run(
     tile_10k: str,
-    output_dir: Path | None = None,
     connection_string: str | None = None,
 ) -> None:
-    """Process all 1k tiles within a 10k BNG block."""
-    if output_dir is None:
-        output_dir = Path(OUTPUT_DIR)
+    """Process all 1k tiles within a 10k BNG block and upload nDSM to blob storage."""
     if connection_string is None:
         connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 
@@ -80,7 +90,7 @@ def run(
     tiles_1k = sorted(Path(b.name).stem for b in blobs if b.name.endswith(".tif"))
 
     for tile_1k in tiles_1k:
-        process_tile(tile_10k, tile_1k, client, dtm_index, output_dir)
+        process_tile(tile_10k, tile_1k, client, dtm_index)
 
 
 def main() -> None:
@@ -89,11 +99,8 @@ def main() -> None:
         description="Calculate nDSM from DSM and DTM in Azure Blob Storage"
     )
     parser.add_argument("tile_10k", help="10k BNG tile reference (e.g. SP00)")
-    parser.add_argument(
-        "--output-dir", default=OUTPUT_DIR, help="Local output directory"
-    )
     args = parser.parse_args()
-    run(args.tile_10k, Path(args.output_dir))
+    run(args.tile_10k)
 
 
 if __name__ == "__main__":

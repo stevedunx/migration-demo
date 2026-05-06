@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import rasterio
+from rasterio.io import MemoryFile
 from azure.storage.blob import BlobServiceClient
 
 from ndsm_creator.main import process_tile, run
@@ -11,6 +12,9 @@ from ndsm_creator.ndsm import calculate_ndsm
 from ndsm_creator.storage import create_client
 
 from conftest import DTM_GUID, TILE_10K, TILE_1K
+
+NDSM_CONTAINER = "ndsm"
+VERSION = "v1"
 
 
 # ---------------------------------------------------------------------------
@@ -84,38 +88,51 @@ class TestProcessTile:
     def _dtm_index(self):
         return {"tiles": [{"reference": TILE_1K, "file": f"{DTM_GUID}.tif.gz"}]}
 
-    def test_produces_ndsm_tif(self, tmp_path, azurite, tile_data):
-        tile_10k, tile_1k = tile_data
-
-        process_tile(
-            tile_10k, tile_1k, self._client(azurite), self._dtm_index(), tmp_path
+    def _ndsm_blob(self, blob_client, tile_10k, tile_1k, ext):
+        return blob_client.get_blob_client(
+            NDSM_CONTAINER, f"{VERSION}/{tile_10k}/{tile_1k}.{ext}"
         )
 
-        output_tif = tmp_path / tile_10k / f"{tile_1k}.tif"
-        assert output_tif.exists()
-        with rasterio.open(output_tif) as ds:
-            assert np.allclose(ds.read(1), 40.0)
-
-    def test_produces_metadata_json(self, tmp_path, azurite, tile_data):
+    def test_produces_ndsm_tif_blob(self, azurite, blob_client, tile_data):
         tile_10k, tile_1k = tile_data
 
-        process_tile(
-            tile_10k, tile_1k, self._client(azurite), self._dtm_index(), tmp_path
-        )
+        process_tile(tile_10k, tile_1k, self._client(azurite), self._dtm_index())
 
-        output_json = tmp_path / tile_10k / f"{tile_1k}.json"
-        assert output_json.exists()
-        metadata = json.loads(output_json.read_text())
+        assert self._ndsm_blob(blob_client, tile_10k, tile_1k, "tif").exists()
+
+    def test_ndsm_tif_values_are_correct(self, azurite, blob_client, tile_data):
+        tile_10k, tile_1k = tile_data
+
+        process_tile(tile_10k, tile_1k, self._client(azurite), self._dtm_index())
+
+        data = (
+            self._ndsm_blob(blob_client, tile_10k, tile_1k, "tif")
+            .download_blob()
+            .readall()
+        )
+        with MemoryFile(data) as mem:
+            with mem.open() as ds:
+                assert np.allclose(ds.read(1), 40.0)
+
+    def test_produces_metadata_json_blob(self, azurite, blob_client, tile_data):
+        tile_10k, tile_1k = tile_data
+
+        process_tile(tile_10k, tile_1k, self._client(azurite), self._dtm_index())
+
+        raw = (
+            self._ndsm_blob(blob_client, tile_10k, tile_1k, "json")
+            .download_blob()
+            .readall()
+        )
+        metadata = json.loads(raw)
         assert metadata["tile"] == tile_1k
 
-    def test_raises_for_missing_dtm_index_entry(self, tmp_path, azurite, tile_data):
+    def test_raises_for_missing_dtm_index_entry(self, azurite, tile_data):
         tile_10k, tile_1k = tile_data
         empty_index = {"tiles": []}
 
         with pytest.raises(ValueError, match="No DTM entry"):
-            process_tile(
-                tile_10k, tile_1k, self._client(azurite), empty_index, tmp_path
-            )
+            process_tile(tile_10k, tile_1k, self._client(azurite), empty_index)
 
 
 # ---------------------------------------------------------------------------
@@ -124,18 +141,29 @@ class TestProcessTile:
 
 
 class TestRun:
-    def test_processes_all_tiles_in_10k_block(self, tmp_path, azurite, tile_data):
+    def _ndsm_blob(self, blob_client, tile_10k, tile_1k, ext):
+        return blob_client.get_blob_client(
+            NDSM_CONTAINER, f"{VERSION}/{tile_10k}/{tile_1k}.{ext}"
+        )
+
+    def test_produces_ndsm_blobs(self, azurite, blob_client, tile_data):
         tile_10k, tile_1k = tile_data
 
-        run(tile_10k, output_dir=tmp_path, connection_string=azurite)
+        run(tile_10k, connection_string=azurite)
 
-        assert (tmp_path / tile_10k / f"{tile_1k}.tif").exists()
-        assert (tmp_path / tile_10k / f"{tile_1k}.json").exists()
+        assert self._ndsm_blob(blob_client, tile_10k, tile_1k, "tif").exists()
+        assert self._ndsm_blob(blob_client, tile_10k, tile_1k, "json").exists()
 
-    def test_ndsm_values_are_correct(self, tmp_path, azurite, tile_data):
+    def test_ndsm_values_are_correct(self, azurite, blob_client, tile_data):
         tile_10k, tile_1k = tile_data
 
-        run(tile_10k, output_dir=tmp_path, connection_string=azurite)
+        run(tile_10k, connection_string=azurite)
 
-        with rasterio.open(tmp_path / tile_10k / f"{tile_1k}.tif") as ds:
-            assert np.allclose(ds.read(1), 40.0)
+        data = (
+            self._ndsm_blob(blob_client, tile_10k, tile_1k, "tif")
+            .download_blob()
+            .readall()
+        )
+        with MemoryFile(data) as mem:
+            with mem.open() as ds:
+                assert np.allclose(ds.read(1), 40.0)

@@ -7,6 +7,5 @@ STORAGE_ACCOUNT_URL = os.getenv(
 
 DSM_CONTAINER = "dsm"
 DTM_CONTAINER = "dtm"
+NDSM_CONTAINER = "ndsm"
 VERSION = "v1"
-
-OUTPUT_DIR = os.getenv("NDSM_OUTPUT_DIR", "ndsm")

@@ -51,13 +51,14 @@ The `index.json` file has the following structure, with up to 100 entries (one p
 
 ### nDSM output
 
-The calculated nDSM is written locally:
+The calculated nDSM is written to the same storage account in the `ndsm` container:
 
 ```
 ndsm/
-└── <10k BNG Reference>/
-    ├── <1k BNG Reference>.tif  nDSM elevation raster
-    └── <1k BNG Reference>.json Tile metadata (copied from DSM source)
+└── v1/
+    └── <10k BNG Reference>/
+        ├── <1k BNG Reference>.tif  nDSM elevation raster
+        └── <1k BNG Reference>.json Tile metadata (copied from DSM source)
 ```
 
 ## Prerequisites
@@ -89,24 +90,17 @@ pip install -e ".[test]"
 
 ## Running
 
-Process all 1 km tiles within a 10 km BNG block and write the nDSM files to the default `ndsm/` output directory:
+Process all 1 km tiles within a 10 km BNG block and upload the nDSM files to the `ndsm` container in blob storage:
 
 ```bash
 ndsm-creator SP00
 ```
 
-Write output to a custom directory:
-
-```bash
-ndsm-creator SP00 --output-dir /path/to/output
-```
-
-By default the application authenticates to Azure using `DefaultAzureCredential`. To override the storage account URL or output directory, set the following environment variables:
+By default the application authenticates to Azure using `DefaultAzureCredential`. The following environment variables are supported:
 
 | Variable                          | Default                                           | Description                                      |
 | --------------------------------- | ------------------------------------------------- | ------------------------------------------------ |
-| `STORAGE_ACCOUNT_URL`             | `https://height-store-demo.blob.core.example.net` | Azure Blob Storage account URL                   |
-| `NDSM_OUTPUT_DIR`                 | `ndsm`                                            | Local directory to write nDSM files into         |
+| `STORAGE_ACCOUNT_URL`             | `https://height-store-demo.blob.core.windows.net` | Azure Blob Storage account URL                   |
 | `AZURE_STORAGE_CONNECTION_STRING` | _(unset)_                                         | If set, used instead of `DefaultAzureCredential` |
 
 ## Running the tests
