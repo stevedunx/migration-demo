@@ -71,6 +71,7 @@ def azurite(tmp_path_factory):  # yields str
             "--location",
             str(workspace),
             "--silent",
+            "--skipApiVersionCheck",
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
