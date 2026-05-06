@@ -65,12 +65,12 @@ ndsm/
 | Requirement | Version | Notes                                              |
 | ----------- | ------- | -------------------------------------------------- |
 | Python      | ≥ 3.10  |                                                    |
-| Azurite     | latest  | Azure Blob Storage emulator used by the test suite |
+| Azurite     | 3.35.0  | Azure Blob Storage emulator used by the test suite |
 
 Install Azurite once, globally:
 
 ```bash
-npm install -g azurite
+npm install -g azurite@3.35.0
 ```
 
 ## Installation
