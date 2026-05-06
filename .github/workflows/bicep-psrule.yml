@@ -3,14 +3,14 @@ name: Bicep lint (PSRule for Azure)
 on:
   push:
     paths:
-      - 'infrastructure/**'
-      - 'ps-rule.yaml'
-      - '.github/workflows/bicep-psrule.yml'
+      - "infrastructure/**"
+      - "ps-rule.yaml"
+      - ".github/workflows/bicep-psrule.yml"
   pull_request:
     paths:
-      - 'infrastructure/**'
-      - 'ps-rule.yaml'
-      - '.github/workflows/bicep-psrule.yml'
+      - "infrastructure/**"
+      - "ps-rule.yaml"
+      - ".github/workflows/bicep-psrule.yml"
   workflow_dispatch:
 
 jobs:
