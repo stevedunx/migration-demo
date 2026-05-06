@@ -25,7 +25,8 @@ from rasterio.transform import from_bounds
 # ---------------------------------------------------------------------------
 _AZURITE_ACCOUNT = "devstoreaccount1"
 _AZURITE_KEY = (
-    "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tiqw1234567890=="
+    "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq"
+    "/K1SZFPTOtr/KBHBeksoGMGw=="
 )
 
 TILE_10K = "SP00"
