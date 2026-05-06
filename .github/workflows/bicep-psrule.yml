@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - "infrastructure/**"
-      - "ps-rule.yaml"
+      - "ps-rule.yml"
       - ".github/workflows/bicep-psrule.yml"
   pull_request:
     paths:
       - "infrastructure/**"
-      - "ps-rule.yaml"
+      - "ps-rule.yml"
       - ".github/workflows/bicep-psrule.yml"
   workflow_dispatch:
 
