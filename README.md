@@ -13,7 +13,7 @@ Height data is commonly captured as a grid of elevation values, where each cell 
 - **DTM (Digital Terrain Model)** — records the elevation of the bare ground surface, with above-ground objects removed, such as buildings and trees.
 - **nDSM (normalised Digital Surface Model)** — the difference between the two. By subtracting the DTM from the DSM, the ground elevation is cancelled out, leaving the height of objects *above* the ground (e.g. a building 15 m tall will have an nDSM value of ~15 m regardless of where it sits in the landscape).
 
-All rasters are projected in the British National Grid (EPSG:27700) and tiled using BNG references at two levels: 10 km × 10 km grid squares (e.g. `SP00`) subdivided into up to 100 1 km × 1 km tiles (e.g. `SP0000`). Each tile has approximately 1 m ground resolution (1000 × 1000 pixels).
+All rasters are projected in the British National Grid (EPSG:27700) and tiled using [BNG references](https://www.ordnancesurvey.co.uk/documents/resources/guide-to-nationalgrid.pdf) at two levels: 10 km × 10 km grid squares (e.g. `SP00`) subdivided into up to 100 1 km × 1 km tiles (e.g. `SP0000`). Each tile has approximately 1 m ground resolution (1000 × 1000 pixels).
 
 ## Data sources
 
