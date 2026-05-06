@@ -91,11 +91,11 @@ resource ndsmJob 'Microsoft.App/jobs@2024-03-01' = {
           ]
           env: [
               name: 'STORAGE_ACCOUNT_URL'
-              value: 'https://${storageAccountName}.blob.core.windows.net'
+              value: 'https://${storageAccountName}.blob.core.example.net'
             }
             {
               name: 'AZURE_STORAGE_CONNECTION_STRING'
-              value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=core.windows.net'
+              value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=core.example.net'
             }
           ]
         }

@@ -2,7 +2,7 @@ import os
 
 STORAGE_ACCOUNT_URL = os.getenv(
     "STORAGE_ACCOUNT_URL",
-    "https://height-store-demo.blob.core.windows.net",
+    "https://height-store-demo.blob.core.example.net",
 )
 
 DSM_CONTAINER = "dsm"
