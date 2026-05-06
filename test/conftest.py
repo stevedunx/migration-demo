@@ -114,13 +114,13 @@ def blob_client(azurite) -> BlobServiceClient:
 # ---------------------------------------------------------------------------
 
 # BNG coordinates for a 1 km tile (SP0000 corner)
-_TRANSFORM = from_bounds(440000, 250000, 441000, 251000, 10, 10)
+_TRANSFORM = from_bounds(440000, 250000, 441000, 251000, 1000, 1000)
 _CRS = CRS.from_epsg(27700)
 _NODATA = -9999.0
 
 
 def _make_tif(data: np.ndarray) -> bytes:
-    """Return in-memory GeoTIFF bytes for *data* on a fixed 10x10 BNG grid."""
+    """Return in-memory GeoTIFF bytes for *data* on a fixed 1000x1000 BNG grid (~1 m resolution)."""
     with rasterio.MemoryFile() as mem:
         with mem.open(
             driver="GTiff",
@@ -161,19 +161,19 @@ def make_tif_file(data: np.ndarray, path: Path) -> Path:
 
 @pytest.fixture()
 def dsm_raster(tmp_path) -> Path:
-    data = np.full((10, 10), 50.0, dtype=np.float32)
+    data = np.full((1000, 1000), 50.0, dtype=np.float32)
     return make_tif_file(data, tmp_path / "dsm.tif")
 
 
 @pytest.fixture()
 def dtm_raster(tmp_path) -> Path:
-    data = np.full((10, 10), 10.0, dtype=np.float32)
+    data = np.full((1000, 1000), 10.0, dtype=np.float32)
     return make_tif_file(data, tmp_path / "dtm.tif")
 
 
 @pytest.fixture()
 def dsm_raster_with_nodata(tmp_path) -> Path:
-    data = np.full((10, 10), 50.0, dtype=np.float32)
+    data = np.full((1000, 1000), 50.0, dtype=np.float32)
     data[0, 0] = _NODATA
     return make_tif_file(data, tmp_path / "dsm_nodata.tif")
 
@@ -191,13 +191,15 @@ def tile_data(blob_client) -> tuple[str, str]:
     DTM index structure:
         { "tiles": { "<1k ref>": "<guid>.tif.gz" } }
     """
-    dsm_data = np.full((10, 10), 50.0, dtype=np.float32)
-    dtm_data = np.full((10, 10), 10.0, dtype=np.float32)
+    dsm_data = np.full((1000, 1000), 50.0, dtype=np.float32)
+    dtm_data = np.full((1000, 1000), 10.0, dtype=np.float32)
 
     dsm_bytes = _make_tif(dsm_data)
     dtm_gz_bytes = gzip.compress(_make_tif(dtm_data))
     metadata = json.dumps({"tile": TILE_1K, "version": "v1"}).encode()
-    dtm_index = json.dumps({"tiles": {TILE_1K: f"{DTM_GUID}.tif.gz"}}).encode()
+    dtm_index = json.dumps(
+        {"tiles": [{"reference": TILE_1K, "file": f"{DTM_GUID}.tif.gz"}]}
+    ).encode()
 
     def upload(container: str, path: str, data: bytes) -> None:
         blob_client.get_blob_client(container, path).upload_blob(data)

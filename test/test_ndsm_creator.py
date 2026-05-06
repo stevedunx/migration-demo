@@ -82,7 +82,7 @@ class TestProcessTile:
         return create_client(connection_string=azurite)
 
     def _dtm_index(self):
-        return {"tiles": {TILE_1K: f"{DTM_GUID}.tif.gz"}}
+        return {"tiles": [{"reference": TILE_1K, "file": f"{DTM_GUID}.tif.gz"}]}
 
     def test_produces_ndsm_tif(self, tmp_path, azurite, tile_data):
         tile_10k, tile_1k = tile_data
@@ -110,7 +110,7 @@ class TestProcessTile:
 
     def test_raises_for_missing_dtm_index_entry(self, tmp_path, azurite, tile_data):
         tile_10k, tile_1k = tile_data
-        empty_index = {"tiles": {}}
+        empty_index = {"tiles": []}
 
         with pytest.raises(ValueError, match="No DTM entry"):
             process_tile(

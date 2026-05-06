@@ -30,7 +30,8 @@ def process_tile(
     output_dir: Path,
 ) -> None:
     """Download the DSM and DTM for a 1k tile, compute the nDSM, and write outputs locally."""
-    dtm_filename = dtm_index.get("tiles", {}).get(tile_1k)
+    dtm_tiles = {t["reference"]: t["file"] for t in dtm_index.get("tiles", [])}
+    dtm_filename = dtm_tiles.get(tile_1k)
     if dtm_filename is None:
         raise ValueError(f"No DTM entry for tile {tile_1k} in DTM index")
 

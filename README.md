@@ -28,13 +28,14 @@ dtm/
         └── <GUID>.tif.gz           Gzipped DTM elevation raster
 ```
 
-The `index.json` file has the following structure:
+The `index.json` file has the following structure, with up to 100 entries (one per 1 km tile in the 10 km block):
 
 ```json
 {
-  "tiles": {
-    "<1k BNG Reference>": "<GUID>.tif.gz"
-  }
+  "tiles": [
+    { "reference": "<1k BNG Reference>", "file": "<GUID>.tif.gz" },
+    { "reference": "<1k BNG Reference>", "file": "<GUID>.tif.gz" }
+  ]
 }
 ```
 
