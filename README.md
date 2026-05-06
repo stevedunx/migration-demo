@@ -120,6 +120,12 @@ uv --version
 
 ### Install the package
 
+Create a virtual environment:
+
+```bash
+uv venv
+```
+
 Install the package and its runtime dependencies:
 
 ```bash
@@ -132,11 +138,18 @@ Install with test dependencies:
 uv pip install -e ".[test]"
 ```
 
-To run commands inside the managed environment, prefix them with `uv run`:
+> **Note:** If you are on a network that performs TLS inspection, add `--native-tls` to the install commands.
+
+Activate the virtual environment before running any commands:
 
 ```bash
-uv run ndsm-creator SP00
-uv run pytest
+# macOS / Linux
+source .venv/bin/activate
+```
+
+```powershell
+# Windows
+.venv\Scripts\activate
 ```
 
 ### Alternative: plain pip
@@ -148,12 +161,22 @@ pip install -e .           # runtime only
 pip install -e ".[test]"   # with test dependencies
 ```
 
+Activate the environment before running commands:
+
+```bash
+# macOS / Linux
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+```
+
 ## Running
 
 Process all 1 km tiles within a 10 km BNG block and upload the nDSM files to the `ndsm` container in blob storage:
 
 ```bash
-uv run ndsm-creator SP00
+ndsm-creator SP00
 ```
 
 By default the application authenticates to Azure using `DefaultAzureCredential`. The following environment variables are supported:
@@ -165,8 +188,10 @@ By default the application authenticates to Azure using `DefaultAzureCredential`
 
 ## Running the tests
 
+Ensure the virtual environment is activated (see [Installation](#installation)), then:
+
 ```bash
-uv run pytest
+pytest
 ```
 
 The test suite starts an Azurite blob service automatically on a free local port, uploads synthetic DSM and DTM tiles, and tears the service down when the session ends. No Azure account or credentials are required to run the tests.
