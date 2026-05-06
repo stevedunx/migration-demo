@@ -1,0 +1,26 @@
+# PSRule for Azure configuration
+# https://azure.github.io/PSRule.Rules.Azure/
+
+requires:
+  PSRule: "@pre >=2.9.0"
+  PSRule.Rules.Azure: "@pre >=1.38.0"
+
+include:
+  module:
+    - PSRule.Rules.Azure
+
+input:
+  pathIgnore:
+    - "**/*.py"
+    - "**/*.json"
+    - "**/*.md"
+    - ".venv/**"
+    - "temp/**"
+    - "test/**"
+
+output:
+  culture:
+    - "en-GB"
+
+configuration:
+  AZURE_BICEP_CHECK_TOOL: true

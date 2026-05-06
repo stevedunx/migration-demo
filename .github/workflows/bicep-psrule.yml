@@ -1,0 +1,42 @@
+name: Bicep lint (PSRule for Azure)
+
+on:
+  push:
+    paths:
+      - 'infrastructure/**'
+      - 'ps-rule.yaml'
+      - '.github/workflows/bicep-psrule.yml'
+  pull_request:
+    paths:
+      - 'infrastructure/**'
+      - 'ps-rule.yaml'
+      - '.github/workflows/bicep-psrule.yml'
+  workflow_dispatch:
+
+jobs:
+  psrule:
+    name: Run PSRule for Azure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Analyse Bicep with PSRule for Azure
+        uses: microsoft/ps-rule@v2.9.0
+        with:
+          modules: PSRule.Rules.Azure
+          inputPath: infrastructure/
+          outputFormat: Sarif
+          outputPath: reports/psrule-results.sarif
+        env:
+          PSRULE_CONFIGURATION_AZURE_BICEP_CHECK_TOOL: true
+
+      - name: Upload SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: reports/psrule-results.sarif
+          category: PSRule.Rules.Azure
