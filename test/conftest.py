@@ -8,6 +8,7 @@ Prerequisites:
 
 import gzip
 import json
+import os
 import socket
 import subprocess
 import time
@@ -61,29 +62,47 @@ def azurite(tmp_path_factory):  # yields str
     """Start an Azurite blob-only service and yield its connection string."""
     port = _free_port()
     workspace = tmp_path_factory.mktemp("azurite_data")
+    print(f"Starting Azurite blob service on port {port} with workspace {workspace}...")
 
-    proc = subprocess.Popen(
-        [
-            "azurite-blob",
-            "--blobPort",
-            str(port),
-            "--blobHost",
-            "127.0.0.1",
-            "--location",
-            str(workspace),
-            "--silent",
-            "--skipApiVersionCheck",
-        ],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        proc = subprocess.Popen(
+            [
+                "azurite-blob",
+                "--blobPort",
+                str(port),
+                "--blobHost",
+                "127.0.0.1",
+                "--location",
+                str(workspace),
+                "--silent",
+                "--skipApiVersionCheck",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,  # Use shell to find the command on PATH
+        )
+    except FileNotFoundError:
+        # Check if 'azurite-blob' is on PATH but failed to execute for some reason
+        if any(
+            Path(p).joinpath("azurite-blob").is_file()
+            for p in os.environ.get("PATH", "").split(os.pathsep)
+        ):
+            pytest.fail(
+                "'azurite-blob' executable found but failed to start. "
+                "Check that Azurite is correctly installed and try again. "
+                f"Workspace: {workspace}. "
+            )
 
     if not _wait_for_port("127.0.0.1", port):
         proc.terminate()
-        pytest.fail(
-            "Azurite blob service did not start. "
-            "Install it with: npm install -g azurite"
-        )
+        stdout, stderr = proc.communicate(timeout=5)
+        output_parts = []
+        if stdout.strip():
+            output_parts.append(f"stdout:\n{stdout.decode(errors='replace')}")
+        if stderr.strip():
+            output_parts.append(f"stderr:\n{stderr.decode(errors='replace')}")
+        detail = "\n".join(output_parts) if output_parts else "(no output captured)"
+        pytest.fail(f"Azurite blob service did not start.\n{detail}\n")
 
     conn_str = (
         f"DefaultEndpointsProtocol=http;"

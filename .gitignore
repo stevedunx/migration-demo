@@ -3,3 +3,12 @@
 __pycache__/ 
 *.egg-info/
 *.egg
+
+## Pytest
+temp/
+
+## Azurite
+AzuriteConfig
+__azurite_db_*.json
+__blob_storage__/
+__queue_storage__/

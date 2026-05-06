@@ -96,6 +96,15 @@ Install Azurite once, globally:
 npm install -g azurite@3.35.0
 ```
 
+Verify the installation:
+
+```powershell
+azurite --version
+```
+
+Troubleshooting:
+- If `azurite` is not recognised, you may need to add `%USERPROFILE%\AppData\Roaming\npm` to your path.
+
 ## Installation
 
 ### Install uv
@@ -191,7 +200,7 @@ By default the application authenticates to Azure using `DefaultAzureCredential`
 Ensure the virtual environment is activated (see [Installation](#installation)), then:
 
 ```bash
-pytest
+pytest --basetemp=temp
 ```
 
 The test suite starts an Azurite blob service automatically on a free local port, uploads synthetic DSM and DTM tiles, and tears the service down when the session ends. No Azure account or credentials are required to run the tests.
