@@ -105,9 +105,7 @@ class TestProcessTile:
         process_tile(tile_10k, tile_1k, self._client(azurite), self._dtm_index())
 
         data = (
-            _ndsm_blob(blob_client, tile_10k, tile_1k, "tif")
-            .download_blob()
-            .readall()
+            _ndsm_blob(blob_client, tile_10k, tile_1k, "tif").download_blob().readall()
         )
         with MemoryFile(data) as mem:
             with mem.open() as ds:
@@ -119,9 +117,7 @@ class TestProcessTile:
         process_tile(tile_10k, tile_1k, self._client(azurite), self._dtm_index())
 
         raw = (
-            _ndsm_blob(blob_client, tile_10k, tile_1k, "json")
-            .download_blob()
-            .readall()
+            _ndsm_blob(blob_client, tile_10k, tile_1k, "json").download_blob().readall()
         )
         metadata = json.loads(raw)
         assert metadata["tile"] == tile_1k
@@ -154,9 +150,7 @@ class TestRun:
         run(tile_10k, connection_string=azurite)
 
         data = (
-            _ndsm_blob(blob_client, tile_10k, tile_1k, "tif")
-            .download_blob()
-            .readall()
+            _ndsm_blob(blob_client, tile_10k, tile_1k, "tif").download_blob().readall()
         )
         with MemoryFile(data) as mem:
             with mem.open() as ds:
