@@ -2,6 +2,8 @@
 
 Calculates a normalised Digital Surface Model (nDSM) from a DSM and DTM held in Azure Blob Storage, using the formula **DSM − DTM = nDSM**. The output rasters are written locally.
 
+[![CI](https://github.com/stevedunx/migration-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/stevedunx/migration-demo/actions/workflows/ci.yml)
+
 ## Background
 
 Height data is commonly captured as a grid of elevation values, where each cell stores the height above sea level in metres for that location on the ground. Three related raster types are used here:
