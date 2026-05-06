@@ -65,10 +65,35 @@ ndsm/
 
 ## Prerequisites
 
-| Requirement | Version | Notes                                              |
-| ----------- | ------- | -------------------------------------------------- |
-| Python      | ≥ 3.10  |                                                    |
-| Azurite     | 3.35.0  | Azure Blob Storage emulator used by the test suite |
+| Requirement | Version    | Notes                                              |
+| ----------- | ---------- | -------------------------------------------------- |
+| Python      | ≥ 3.13     |                                                    |
+| Node.js     | LTS (≥ 20) | Required to install Azurite                        |
+| Azurite     | 3.35.0     | Azure Blob Storage emulator used by the test suite |
+
+### Install Node.js
+
+Download and install the LTS release from [nodejs.org](https://nodejs.org/), or use a version manager:
+
+```bash
+# macOS / Linux – using nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+nvm install --lts
+```
+
+```powershell
+# Windows – using winget
+winget install OpenJS.NodeJS.LTS
+```
+
+Verify the installation:
+
+```bash
+node --version
+npm --version
+```
+
+### Install Azurite
 
 Install Azurite once, globally:
 
