@@ -3,6 +3,7 @@
 Calculates a normalised Digital Surface Model (nDSM) from a DSM and DTM held in Azure Blob Storage, using the formula **DSM − DTM = nDSM**. The output rasters are written to Azure Blob Storage.
 
 [![CI](https://github.com/stevedunx/migration-demo/actions/workflows/ci.yml/badge.svg)](https://github.com/stevedunx/migration-demo/actions/workflows/ci.yml)
+[![Bicep lint (PSRule for Azure)](https://github.com/stevedunx/migration-demo/actions/workflows/bicep-psrule.yml/badge.svg)](https://github.com/stevedunx/migration-demo/actions/workflows/bicep-psrule.yml)
 
 ## Background
 
