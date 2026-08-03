@@ -9,9 +9,9 @@ Prerequisites:
 import gzip
 import json
 import os
+import shutil
 import socket
 import subprocess
-import sys
 import time
 from pathlib import Path
 
@@ -65,10 +65,14 @@ def azurite(tmp_path_factory):  # yields str
     workspace = tmp_path_factory.mktemp("azurite_data")
     print(f"Starting Azurite blob service on port {port} with workspace {workspace}...")
 
+    azurite_exe = shutil.which("azurite-blob")
+    if azurite_exe is None:
+        pytest.skip("azurite-blob not found on PATH")
+
     try:
         proc = subprocess.Popen(
             [
-                "azurite-blob",
+                azurite_exe,
                 "--blobPort",
                 str(port),
                 "--blobHost",
@@ -80,19 +84,13 @@ def azurite(tmp_path_factory):  # yields str
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            shell=sys.platform == "win32",  # .cmd wrapper on Windows needs shell
         )
     except FileNotFoundError:
-        # Check if 'azurite-blob' is on PATH but failed to execute for some reason
-        if any(
-            Path(p).joinpath("azurite-blob").is_file()
-            for p in os.environ.get("PATH", "").split(os.pathsep)
-        ):
-            pytest.fail(
-                "'azurite-blob' executable found but failed to start. "
-                "Check that Azurite is correctly installed and try again. "
-                f"Workspace: {workspace}. "
-            )
+        pytest.fail(
+            "'azurite-blob' executable found but failed to start. "
+            "Check that Azurite is correctly installed and try again. "
+            f"Workspace: {workspace}. "
+        )
 
     if not _wait_for_port("127.0.0.1", port):
         proc.terminate()
